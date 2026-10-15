@@ -1,0 +1,29 @@
+executor: KubernetesExecutor
+
+images:
+  airflow:
+    repository: ghcr.io/fwlipesantos/esteira-anp
+    tag: latest
+    pullPolicy: IfNotPresent
+
+dags:
+  persistence:
+    enabled: false
+  gitSync:
+    enabled: false
+
+extraEnvFrom: |
+  - secretRef:
+      name: anp-oracle
+
+postgresql:
+  enabled: true
+
+logs:
+  persistence:
+    enabled: true
+    size: 5Gi
+
+config:
+  core:
+    load_examples: "False"

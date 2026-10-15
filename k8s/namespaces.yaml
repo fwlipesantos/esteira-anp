@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: airflow-dev
+  labels:
+    ambiente: dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: airflow-hml
+  labels:
+    ambiente: hml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: airflow-prod
+  labels:
+    ambiente: prod

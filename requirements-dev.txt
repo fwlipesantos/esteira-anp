@@ -1,0 +1,6 @@
+oracledb
+pandas
+pyyaml
+requests
+pytest
+ruff

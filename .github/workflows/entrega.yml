@@ -1,0 +1,57 @@
+name: entrega
+
+on:
+  push:
+    branches: [develop, homologacao, main]
+
+jobs:
+  imagem:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      ambiente: ${{ steps.destino.outputs.ambiente }}
+      versao: ${{ steps.destino.outputs.versao }}
+    steps:
+      - id: destino
+        run: |
+          case "$GITHUB_REF_NAME" in
+            develop) echo "ambiente=dev" >> "$GITHUB_OUTPUT" ;;
+            homologacao) echo "ambiente=hml" >> "$GITHUB_OUTPUT" ;;
+            main) echo "ambiente=prod" >> "$GITHUB_OUTPUT" ;;
+          esac
+          echo "versao=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          path: esteira-anp
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/precos-anp
+          path: precos-anp
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/qualidade-anp
+          path: qualidade-anp
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: construir e publicar
+        env:
+          dono: ${{ github.repository_owner }}
+          versao: ${{ steps.destino.outputs.versao }}
+        run: |
+          imagem="ghcr.io/${dono,,}/esteira-anp:$versao"
+          docker build -f esteira-anp/Dockerfile -t "$imagem" .
+          docker push "$imagem"
+
+  publicar:
+    needs: imagem
+    runs-on: self-hosted
+    environment: ${{ needs.imagem.outputs.ambiente }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: deploy
+        run: ./scripts/deploy.sh ${{ needs.imagem.outputs.ambiente }} ${{ needs.imagem.outputs.versao }}

@@ -1,0 +1,15 @@
+env:
+  - name: ambiente
+    value: prod
+
+config:
+  core:
+    load_examples: "False"
+    dags_are_paused_at_creation: "False"
+
+scheduler:
+  replicas: 2
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
